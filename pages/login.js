@@ -64,6 +64,14 @@ export default function Login() {
 
       <div className="min-h-screen flex items-center justify-center relative z-10">
         <div className="w-full max-w-md p-8 bg-white bg-opacity-80 rounded-xl shadow-xl">
+          <p className="text-black text-sm text-center mb-2">
+            <span className="select-none">email: </span>
+            <span className="bg-orange-200 px-1 rounded">demo@example.com</span>
+          </p>
+          <p className="text-black text-sm text-center mb-2">
+          <span className="select-none">password: </span>
+          <span className="bg-orange-200 px-1 rounded">demopass@123456</span>
+          </p>
           <h2 className="text-xl font-semibold text-center text-gray-900 mb-4">Sign In</h2>
           {error && (
             <div className="mt-4 text-center text-sm text-red-600">

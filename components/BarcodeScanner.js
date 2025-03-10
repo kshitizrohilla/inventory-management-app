@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { BrowserMultiFormatReader } from "@zxing/library";
 
-const BarcodeScanner = () => {
+const BarcodeScanner = ({ onDetected }) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const videoRef = useRef(null);
@@ -23,8 +23,10 @@ const BarcodeScanner = () => {
       videoRef.current,
       (result, err) => {
         if (result) {
-          setResult(result.getText());
+          const scannedCode = result.getText();
+          setResult(scannedCode);
           setScanning(false);
+          if (onDetected) onDetected(scannedCode);
         }
         if (err && !(err.name === "NotFoundException")) {
           console.error(err);
