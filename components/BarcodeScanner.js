@@ -1,70 +1,75 @@
-import { useEffect, useRef } from 'react';
-import { BrowserMultiFormatReader } from '@zxing/library';
+import React, { useState, useRef, useEffect } from "react";
+import { BrowserMultiFormatReader } from "@zxing/library";
 
-const BarcodeScanner = ({ onDetected, onError }) => {
+const BarcodeScanner = () => {
+  const [scanning, setScanning] = useState(false);
+  const [result, setResult] = useState(null);
   const videoRef = useRef(null);
-  const codeReader = new BrowserMultiFormatReader();
+  const codeReader = useRef(new BrowserMultiFormatReader());
 
   useEffect(() => {
-    if (!videoRef.current) return;
-
-    const startScanning = (deviceId) => {
-      codeReader.decodeFromVideoDevice(deviceId, videoRef.current, (result, error) => {
-        if (result) {
-          onDetected(result.getText());
-        }
-        if (
-          error &&
-          error.name !== 'NotFoundException' &&
-          !(error.message && error.message.includes("getImageData"))
-        ) {
-          onError && onError(error);
-        }
-      });
-    };
-
-    if (
-      navigator.mediaDevices &&
-      typeof navigator.mediaDevices.enumerateDevices === 'function'
-    ) {
-      codeReader
-        .listVideoInputDevices()
-        .then((videoInputDevices) => {
-          if (videoInputDevices && videoInputDevices.length > 0) {
-            const selectedDeviceId = videoInputDevices[0].deviceId;
-            startScanning(selectedDeviceId);
-          } else {
-            onError && onError(new Error('No video input devices found'));
-          }
-        })
-        .catch((err) => {
-          onError && onError(err);
-        });
+    if (scanning) {
+      startScanning();
     } else {
-      startScanning(null);
+      stopScanning();
     }
 
-    return () => {
-      codeReader.reset();
-    };
-  }, [onDetected, onError]);
+    return () => stopScanning();
+  }, [scanning]);
+
+  const startScanning = () => {
+    codeReader.current.decodeFromVideoDevice(
+      null,
+      videoRef.current,
+      (result, err) => {
+        if (result) {
+          setResult(result.getText());
+          setScanning(false);
+        }
+        if (err && !(err.name === "NotFoundException")) {
+          console.error(err);
+        }
+      }
+    );
+  };
+
+  const stopScanning = () => {
+    codeReader.current.reset();
+    const stream = videoRef.current?.srcObject;
+    const tracks = stream?.getTracks();
+    if (tracks) {
+      tracks.forEach((track) => track.stop());
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+
+  const handleClick = () => {
+    setResult(null);
+    setScanning(true);
+  };
 
   return (
-    <div className="barcode-scanner">
-      <video ref={videoRef} className="viewport" />
-      <style jsx>{`
-        .barcode-scanner {
-          position: relative;
-          width: 100%;
-        }
-        .viewport {
-          width: 100%;
-          height: 320px;
-          object-fit: cover;
-          border: 2px solid #333;
-          border-radius: 8px;
-        }
-      `}</style>
+    <div>
+      <button
+        onClick={handleClick}
+        className="cursor-pointer text-sm rounded-md px-4 py-2 bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 mb-4"
+      >
+        Start Scanning
+      </button>
+
+      {scanning && (
+        <div>
+          <video ref={videoRef} className="w-full md:w-1/2" />
+        </div>
+      )}
+      {result && (
+        <div>
+          <h3>Scanned Result:</h3>
+          <p>{result}</p>
+        </div>
+      )}
     </div>
   );
 };
