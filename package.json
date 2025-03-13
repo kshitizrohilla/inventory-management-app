@@ -12,6 +12,7 @@
     "@zxing/library": "^0.21.3",
     "axios": "^1.8.2",
     "bcryptjs": "^3.0.2",
+    "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",

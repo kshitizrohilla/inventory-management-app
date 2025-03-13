@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Topbar from '@/components/Topbar';
 import BarcodeScanner from '../components/BarcodeScanner';
 import BarcodeImageUpload from '../components/BarcodeImageUpload';
+import ImageUpload from '@/components/ImageUpload';
 
 export default function AddProduct() {
   const [formData, setFormData] = useState({
@@ -279,17 +280,11 @@ export default function AddProduct() {
           </div>
 
           <div className="mb-4">
-            <label htmlFor="imageUrl" className="block text-xs font-medium">Image URL</label>
-            <input
-              type="text"
-              id="imageUrl"
-              name="imageUrl"
-              value={productExists && existingProduct ? existingProduct.imageUrl : formData.imageUrl}
-              onChange={handleChange}
-              required
+            <label className="block text-xs font-medium">Product Image</label>
+            <ImageUpload
+              onUpload={(url) => setFormData({ ...formData, imageUrl: url })}
               disabled={productExists}
-              placeholder="Enter image URL"
-              className="mt-2 p-2 w-full border border-gray-300 rounded text-sm"
+              value={productExists && existingProduct ? existingProduct.imageUrl : formData.imageUrl}
             />
           </div>
 
