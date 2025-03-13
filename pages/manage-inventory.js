@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import BarcodeScanner from '../components/BarcodeScanner';
 import BarcodeImageUpload from '../components/BarcodeImageUpload';
 import Topbar from '@/components/Topbar';
+import Fuse from 'fuse.js';
 
 export default function ManageInventory() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,6 +15,7 @@ export default function ManageInventory() {
   const [operationMode, setOperationMode] = useState('add');
   const [scannedProduct, setScannedProduct] = useState(null);
   const [recentActivity, setRecentActivity] = useState([]);
+  const [fuse, setFuse] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -22,9 +24,23 @@ export default function ManageInventory() {
 
   useEffect(() => {
     if (products.length > 0) {
-      filterProducts();
+      const options = {
+        keys: ['name', 'category', 'barcode'],
+        threshold: 0.5,
+        ignoreLocation: true,
+        minMatchCharLength: 1,
+        includeMatches: true
+      };
+      setFuse(new Fuse(products, options));
+      setFilteredProducts(products);
     }
-  }, [searchQuery, products]);
+  }, [products]);
+
+  useEffect(() => {
+    if (!fuse) return;
+    const results = searchQuery ? fuse.search(searchQuery) : products;
+    setFilteredProducts(results.map(result => result.item || result));
+  }, [searchQuery, fuse, products]);
 
   const fetchProducts = async () => {
     try {
@@ -33,18 +49,12 @@ export default function ManageInventory() {
         router.push('/login');
         return;
       }
-
       const res = await fetch('/api/products', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
-
       const data = await res.json();
-
       if (data.success) {
         setProducts(data.data);
-        setFilteredProducts(data.data);
       }
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -54,36 +64,14 @@ export default function ManageInventory() {
     }
   };
 
-  const filterProducts = () => {
-    if (!searchQuery) {
-      setFilteredProducts(products);
-      return;
-    }
-
-    const filtered = products.filter(product => {
-      return (
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (product.barcode && product.barcode.includes(searchQuery))
-      );
-    });
-
-    setFilteredProducts(filtered);
-  };
-
   const handleBarcodeDetected = async (barcode) => {
     setScanMode(null);
-
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`/api/products/barcode/${barcode}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
-
       const data = await res.json();
-
       if (data.success && data.data) {
         if (operationMode === 'add') {
           await addSingleProduct(data.data);
@@ -98,8 +86,8 @@ export default function ManageInventory() {
         }
       }
     } catch (error) {
-      console.error('Error fetching product by barcode:', error);
-      setError('Failed to fetch product by barcode');
+      console.error('Error:', error);
+      setError('Failed to process barcode');
     }
   };
 
@@ -110,7 +98,6 @@ export default function ManageInventory() {
         ...product,
         quantity: product.quantity + 1,
       };
-
       const res = await fetch(`/api/products/${product._id}`, {
         method: 'PUT',
         headers: {
@@ -119,49 +106,38 @@ export default function ManageInventory() {
         },
         body: JSON.stringify(updatedProduct),
       });
-
       const data = await res.json();
-
       if (data.success) {
-        setProducts(products.map(p =>
-          p._id === product._id ? data.data : p
-        ));
-
+        setProducts(products.map(p => p._id === product._id ? data.data : p));
         setRecentActivity([{
           type: 'add',
           product: product.name,
           quantity: 1,
           timestamp: new Date()
         }, ...recentActivity.slice(0, 9)]);
-
         setScannedProduct({
           ...data.data,
           action: 'added',
           previousQuantity: product.quantity
         });
-      } else {
-        throw new Error(data.message || 'Failed to update product');
       }
     } catch (error) {
-      console.error('Error updating product:', error);
-      setError('Failed to update product quantity');
+      console.error('Error:', error);
+      setError('Failed to update product');
     }
   };
 
   const sellSingleProduct = async (product) => {
     try {
       if (product.quantity < 1) {
-        setError(`Cannot sell ${product.name}. Product is out of stock.`);
+        setError(`Cannot sell ${product.name}. Out of stock.`);
         return;
       }
-
       const token = localStorage.getItem('token');
-
       const updatedProduct = {
         ...product,
         quantity: product.quantity - 1,
       };
-
       const productRes = await fetch(`/api/products/${product._id}`, {
         method: 'PUT',
         headers: {
@@ -170,13 +146,8 @@ export default function ManageInventory() {
         },
         body: JSON.stringify(updatedProduct),
       });
-
       const productData = await productRes.json();
-
-      if (!productData.success) {
-        throw new Error(productData.message || 'Failed to update product');
-      }
-
+      if (!productData.success) throw new Error(productData.message);
       const saleData = {
         productId: product._id,
         productName: product.name,
@@ -184,8 +155,7 @@ export default function ManageInventory() {
         price: product.price,
         total: product.price * 1,
       };
-
-      const saleRes = await fetch('/api/sales', {
+      await fetch('/api/sales', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -193,37 +163,26 @@ export default function ManageInventory() {
         },
         body: JSON.stringify(saleData),
       });
-
-      const saleResult = await saleRes.json();
-
-      if (!saleResult.success) {
-        throw new Error(saleResult.message || 'Failed to record sale');
-      }
-
-      setProducts(products.map(p =>
-        p._id === product._id ? productData.data : p
-      ));
-
+      setProducts(products.map(p => p._id === product._id ? productData.data : p));
       setRecentActivity([{
         type: 'sell',
         product: product.name,
         quantity: 1,
         timestamp: new Date()
       }, ...recentActivity.slice(0, 9)]);
-
       setScannedProduct({
         ...productData.data,
         action: 'sold',
         previousQuantity: product.quantity
       });
     } catch (error) {
-      console.error('Error updating product:', error);
-      setError('Failed to update product quantity or record sale');
+      console.error('Error:', error);
+      setError('Failed to process sale');
     }
   };
 
   const handleScanError = (err) => {
-    setError(`Barcode scanning error: ${err.message}`);
+    setError(`Scanner error: ${err.message}`);
     setScanMode(null);
   };
 

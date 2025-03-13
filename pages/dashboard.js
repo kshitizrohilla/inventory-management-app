@@ -2,17 +2,40 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Topbar from '@/components/Topbar';
+import Fuse from 'fuse.js';
 
 export default function Dashboard() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [stats, setStats] = useState({ totalProducts: 0, totalValue: 0, outOfStock: 0, categories: 0 });
+  const [fuse, setFuse] = useState(null);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const router = useRouter();
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (products.length > 0) {
+      const options = {
+        keys: ['name', 'category'],
+        threshold: 0.5,
+        includeScore: true,
+        ignoreLocation: true,
+        minMatchCharLength: 1
+      };
+      setFuse(new Fuse(products, options));
+      setFilteredProducts(products);
+    }
+  }, [products]);
+
+  useEffect(() => {
+    if (!fuse) return;
+    const results = searchQuery ? fuse.search(searchQuery) : products;
+    setFilteredProducts(results.map(result => result.item || result));
+  }, [searchQuery, fuse, products]);
 
   const fetchProducts = async () => {
     try {
@@ -39,15 +62,22 @@ export default function Dashboard() {
     const totalValue = products.reduce((acc, product) => acc + (product.price * product.quantity), 0);
     const outOfStock = products.filter(product => product.quantity === 0).length;
     const uniqueCategories = new Set(products.map(product => product.category));
-    const categories = uniqueCategories.size;
-    setStats({ totalProducts, totalValue, outOfStock, categories });
+    setStats({
+      totalProducts,
+      totalValue,
+      outOfStock,
+      categories: uniqueCategories.size
+    });
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`/api/products/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+        const res = await fetch(`/api/products/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` }
+        });
         const data = await res.json();
         if (data.success) {
           setProducts(products.filter(product => product._id !== id));
@@ -58,8 +88,6 @@ export default function Dashboard() {
       }
     }
   };
-
-  const filteredProducts = products.filter(product => product.name.toLowerCase().includes(searchQuery.toLowerCase()) || product.category.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <>
@@ -79,14 +107,14 @@ export default function Dashboard() {
             <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all relative">
               <h3 className="text-base font-medium">Out of Stock</h3>
               <p className="text-lg">{stats.outOfStock}</p>
-              <Link className="cursor-pointer absolute bottom-4 right-4 bg-slate-700 text-white p-2 text-xs rounded hover:bg-slate-800 transition-all" href="/out-of-stock">
+              <Link href="/out-of-stock" className="cursor-pointer absolute bottom-4 right-4 bg-slate-700 text-white p-2 text-xs rounded hover:bg-slate-800 transition-all">
                 View Items
               </Link>
             </div>
             <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all relative">
               <h3 className="text-base font-medium">Categories</h3>
               <p className="text-lg">{stats.categories}</p>
-              <Link className="absolute bottom-4 right-4 bg-slate-700 text-white p-2 text-xs rounded hover:bg-slate-800 transition-all cursor-pointer" href="/categories">
+              <Link href="/categories" className="absolute bottom-4 right-4 bg-slate-700 text-white p-2 text-xs rounded hover:bg-slate-800 transition-all cursor-pointer">
                 View Categories
               </Link>
             </div>
