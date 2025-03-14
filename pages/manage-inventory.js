@@ -106,6 +106,11 @@ export default function ManageInventory() {
         },
         body: JSON.stringify(updatedProduct),
       });
+      if (res.status === 403) {
+        const data = await res.json();
+        window.alert(data.message);
+        return;
+      }
       const data = await res.json();
       if (data.success) {
         setProducts(products.map(p => p._id === product._id ? data.data : p));
@@ -146,6 +151,11 @@ export default function ManageInventory() {
         },
         body: JSON.stringify(updatedProduct),
       });
+      if (productRes.status === 403) {
+        const data = await productRes.json();
+        window.alert(data.message);
+        return;
+      }
       const productData = await productRes.json();
       if (!productData.success) throw new Error(productData.message);
       const saleData = {

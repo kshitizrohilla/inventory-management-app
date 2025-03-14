@@ -50,6 +50,12 @@ export default function OutOfStock() {
           },
         });
 
+        if (res.status === 403) {
+          const data = await res.json();
+          window.alert(data.message);
+          return;
+        }
+
         const data = await res.json();
 
         if (data.success) {

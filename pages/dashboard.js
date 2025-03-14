@@ -78,6 +78,11 @@ export default function Dashboard() {
           method: 'DELETE',
           headers: { Authorization: `Bearer ${token}` }
         });
+        if (res.status === 403) {
+          const data = await res.json();
+          window.alert(data.message);
+          return;
+        }
         const data = await res.json();
         if (data.success) {
           setProducts(products.filter(product => product._id !== id));

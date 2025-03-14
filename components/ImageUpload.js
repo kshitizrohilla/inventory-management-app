@@ -21,7 +21,7 @@ export default function ImageUpload({ onUpload, disabled, value }) {
 
   return (
     <div>
-      {value && <img src={value} alt="Preview" className="max-w-xs mb-2" />}
+      {/* {value && <img src={value} alt="Preview" className="max-w-xs mb-2" />} */}
       <input
         type="file"
         accept="image/*"

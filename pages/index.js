@@ -40,12 +40,15 @@ export default function LandingPage() {
                 <h1 className="text-3xl md:text-4xl font-bold mb-6">Complete Inventory & Sales Management</h1>
                 <p className="text-lg mb-8">Streamline your business operations with barcode scanning, real-time inventory tracking, and comprehensive sales analytics.</p>
                 <div className="flex flex-row sm:flex-row space-y-4 space-x-4 sm:space-y-0 sm:space-x-4">
-                  <Link href="/register">
-                    <button className="px-6 py-3 bg-white text-indigo-600 font-medium rounded-md cursor-pointer text-sm">Get Started</button>
-                  </Link>
+                  {/* <Link href="/register">
+                    <button className="px-6 py-3 border text-white font-medium rounded-md cursor-pointer text-sm">Get Started</button>
+                  </Link> */}
                   <Link href="/login">
-                    <button className="px-6 py-3 border border-white text-white font-medium rounded-md cursor-pointer text-sm">Login</button>
+                    <button className="px-6 py-3 bg-blue-600 border-white text-white font-medium rounded-md cursor-pointer text-sm">View Demo</button>
                   </Link>
+                  {/* <Link href="/login">
+                    <button className="px-6 py-3 border border-white text-white font-medium rounded-md cursor-pointer text-sm">Login</button>
+                  </Link> */}
                 </div>
               </div>
               <div className="md:w-1/2 md:mr-20">

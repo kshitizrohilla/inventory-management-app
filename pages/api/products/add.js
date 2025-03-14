@@ -14,6 +14,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' });
   }
 
+  if (auth.user.email === 'demo@example.com') {
+    return res.status(403).json({ 
+      success: false, 
+      message: 'You cannot add products in demo account. Please create a personal account to continue.' 
+    });
+  }
+
   try {
     const product = await Product.create({
       ...req.body,

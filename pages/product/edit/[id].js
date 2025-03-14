@@ -80,6 +80,12 @@ export default function EditProduct() {
         body: JSON.stringify(formData),
       });
 
+      if (res.status === 403) {
+        const data = await res.json();
+        window.alert(data.message);
+        return;
+      }
+
       const data = await res.json();
 
       if (!res.ok) {

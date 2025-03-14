@@ -29,6 +29,13 @@ export default async function handler(req, res) {
       break;
     case 'PUT':
       try {
+        if (auth.user.email === 'demo@example.com') {
+          return res.status(403).json({ 
+            success: false, 
+            message: 'You cannot modify products in demo account. Please create a personal account to continue.' 
+          });
+        }
+
         const product = await Product.findOneAndUpdate(
           { _id: id, user: auth.user._id },
           req.body,
@@ -46,6 +53,13 @@ export default async function handler(req, res) {
       break;
     case 'DELETE':
       try {
+        if (auth.user.email === 'demo@example.com') {
+          return res.status(403).json({ 
+            success: false, 
+            message: 'You cannot delete products in demo account. Please create a personal account to continue.' 
+          });
+        }
+        
         const product = await Product.findOneAndDelete({ _id: id, user: auth.user._id });
 
         if (!product) {
