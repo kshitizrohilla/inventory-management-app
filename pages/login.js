@@ -2,6 +2,31 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 
+import { parse } from 'cookie';
+import jwt from 'jsonwebtoken';
+
+export async function getServerSideProps({ req }) {
+  const cookies = req.headers.cookie || '';
+  const { token } = parse(cookies);
+
+  if (token) {
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      return {
+        redirect: {
+          destination: '/dashboard',
+          permanent: false,
+        },
+      };
+    } catch (error) {
+    }
+  }
+
+  return {
+    props: {},
+  };
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -69,8 +94,8 @@ export default function Login() {
             <span className="bg-orange-200 px-1 rounded">demo@example.com</span>
           </p>
           <p className="text-black text-sm text-center mb-2">
-          <span className="select-none">password: </span>
-          <span className="bg-orange-200 px-1 rounded">demopass@123456</span>
+            <span className="select-none">password: </span>
+            <span className="bg-orange-200 px-1 rounded">demopass@123456</span>
           </p>
           <h2 className="text-xl font-semibold text-center text-gray-900 mb-4">Sign In</h2>
           {error && (
