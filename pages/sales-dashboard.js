@@ -226,6 +226,39 @@ export default function SalesDashboard() {
         </div>
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
           <div className="w-full">
+            <h3 className="text-lg font-semibold mb-4">Top Selling Products</h3>
+            <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all">
+              <Chart
+                chartType="PieChart"
+                width="100%"
+                height="350px"
+                data={topProductsPieChart}
+                options={{
+                  title: 'Top Selling Products',
+                  colors: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#4bc0c0']
+                }}
+              />
+            </div>
+          </div>
+          <div className="w-full">
+            <h3 className="text-lg font-semibold mb-4">Revenue by Product Category</h3>
+            <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all">
+              <Chart
+                chartType="ColumnChart"
+                width="100%"
+                height="350px"
+                data={revenueByCategoryChart}
+                options={{
+                  title: 'Revenue by Product Category',
+                  legend: { position: 'none' },
+                  colors: ['#d35400']
+                }}
+              />
+            </div>
+          </div>
+        </div>
+        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="w-full">
             <h3 className="text-lg font-semibold mb-4">Sales Data</h3>
             <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all">
               <Chart
@@ -290,39 +323,6 @@ export default function SalesDashboard() {
                   title: 'Sales by Day of Week',
                   legend: { position: 'none' },
                   colors: ['#f1c40f']
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-          <div className="w-full">
-            <h3 className="text-lg font-semibold mb-4">Top Selling Products</h3>
-            <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all">
-              <Chart
-                chartType="PieChart"
-                width="100%"
-                height="350px"
-                data={topProductsPieChart}
-                options={{
-                  title: 'Top Selling Products',
-                  colors: ['#ff6384', '#36a2eb', '#cc65fe', '#ffce56', '#4bc0c0']
-                }}
-              />
-            </div>
-          </div>
-          <div className="w-full">
-            <h3 className="text-lg font-semibold mb-4">Revenue by Product Category</h3>
-            <div className="bg-white p-4 rounded shadow-lg hover:shadow-xl transition-all">
-              <Chart
-                chartType="ColumnChart"
-                width="100%"
-                height="350px"
-                data={revenueByCategoryChart}
-                options={{
-                  title: 'Revenue by Product Category',
-                  legend: { position: 'none' },
-                  colors: ['#d35400']
                 }}
               />
             </div>

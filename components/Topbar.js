@@ -6,9 +6,10 @@ export default function Topbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const router = useRouter();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/login');
   };
 
